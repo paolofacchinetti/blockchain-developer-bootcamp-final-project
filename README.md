@@ -15,5 +15,7 @@ This way, the end user will be able to transfer the Bag between its wallets, or 
 
 # Example User Workflow
 
-* User interacts with the BagsOfX contract, calls mintBag() function, locks a number of ERC-20 tokens and sets the properties of the Bag. A Bag ERC-721 is sent to the user
+* User connects Metamask to the BagsOfX website
+* Through the UI, the User specifies how many tokens he wants to put inside the Bag, and the Bag's properties
+* User makes a call to the BagsOfX contract, calling the mintBag() function. It locks a number of ERC-20 tokens and sets the properties of the Bag ERC-721. A Bag ERC-721 is sent to the user
 * User can then interact with the contract once again, calling a redeemBag() function. Burns the Bag ERC-721 and redeems the ERC-20 tokens associated with the Bag.
