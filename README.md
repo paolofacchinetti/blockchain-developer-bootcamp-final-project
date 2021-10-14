@@ -1,29 +1,52 @@
-# BagOfX - an ERC-20 to ERC-721 wrapper - Bringing non-fungibility to fungible tokens
+# EtherGovernance - On-chain Governance based on Ether
 
 # Problem
 
-ERC-20 Tokens are inherently fungible. This makes it impossible to differentiate between tokens of the same type.
+Protocols or DAOs that haven't issued a governance token yet (or don't want to), but want to partecipate in on-chain governance, can't.
 
 # Solution
 
-BagOfX is a ERC-20 to ERC-721 (NFT) wrapper. Users will be able to create a Bag (or ERC-721) that contains a certain number of ERC-20 tokens, and specify some settings that will change the behaviour of the Bag.
+Ether, the currency of the Ethereum network, has a wide distribution with millions of users. If your dApp or protocol is deployed on Ethereum, your users will certainly hold some amount of Ether.
 
-The Bag's owners will be able to burn the Bag to get back the original tokens whenever they want (if the Bag's properties allow it). Until then, the Bag behaves as a tradable ERC-721 token.
+By using on-chain, Ether-based governance, organizations can bootstrap governance in their early stages, when they still haven't released a proper governance token. If they don't intend to release a governance token, they can use EtherGovernance to democratize their governance process (which usually consists of off-chain polls and discussion, such as on Discord or proprietary forums), making them as transparent as possible.
 
-One of the simplest use-cases of BagOfX is the creation of a NFT representing locked tokens. Instead of having the tokens be locked inside of a smart contract and redeemable by a whitelisted address after the lockup period ends, it will be possible to lock N tokens (i.e. a presale allocation by a single buyer) into a BagOfX, and set its properties to allow the redemption of the tokens only after a lockup period is over.
-This way, the end user will be able to transfer the Bag between its wallets, or even selling it on secondary markets (presumably at a discount due to the lockup period).
+Users will be able to create proposals and vote on them by locking Ether in the contract to receive voting power. After the proposals they've voted for are over, they will be able to withdraw their Ether.
 
-----
+---
 
 # Example User Workflow
 
-### Bag creation
-* User connects Metamask to the BagsOfX website
-* Through the UI, the User specifies how many tokens he wants to put inside the Bag, and the Bag's properties
-* User makes a call to the BagsOfX contract, calling the mintBag() function. It locks a number of ERC-20 tokens and sets the properties of the Bag ERC-721. A Bag ERC-721 is sent to the user
+- User visits the frontend, connects MetaMask
 
+### Getting voting power
 
-### Bag redeem
-* Through the website UI, the User can see the Bags in his account
-* The User picks the Bag to be redeemed
-* User interacts with the contract, calling the redeemBag() function. It burns the Bag ERC-721 and sends the ERC-20 tokens associated with the Bag to the User's address
+- User picks the amount of Ether he wants to lock in the smart contract
+- User calls the `lockEther()` function in the smart contract, sending the amount of Ether he wants to lock
+- The smart contract keeps track of the amount of Ether he deposited, and gives the user's address the same amount of voting power
+
+### Creating a proposal
+
+- User inputs the proposal's content as text in the frontend
+- User calls the `createProposal()` function in the smart contract, a hash of the proposal's text is passed as proof
+- The smart contracts checks if the User has the minimum required amount of voting power to create a proposal (value is initialized on contract deployment and can be customized)
+- The proposal is created
+
+### Voting on a proposal
+
+- User calls a `voteProposal()` function in the smart contract, specifying the proposal he wants to vote for, and his vote (for or against)
+- The smart contract deducts voting points from the user's balance and sets the user's vote
+
+### Closing a proposal
+
+- The proposal's creator decides to close the proposal
+- He calls the `closeProposal()` function in the smart contract
+- The proposal goes into a `closed` state, and the voting power that was committed by voters of this proposal is given back to the voters.
+
+### Redeeming Ether
+
+- User calls a `redeemEther()` function in the smart contract, withdrawing Ether from his available amount that's stored in the contract
+
+# Stretch goals
+
+- For now only the proposal's creator can close a proposal, whenever they want to. Implement a timer for each proposal (based on block #) after which anyone can close the proposal.
+- Support multiple protocols/DAOs from the same contract.
