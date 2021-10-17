@@ -5,7 +5,7 @@ contract EtherGovernance {
 
     /* state */ 
 
-    uint256 private proposalCreationRequirement;
+    uint256 public proposalCreationRequirement;
 
     struct Proposal {
         address creator;
@@ -16,16 +16,16 @@ contract EtherGovernance {
         // hash of the proposal's text
     }
 
-    mapping(uint256 => Proposal) private proposals;
-    uint256 private proposalCount;
+    mapping(uint256 => Proposal) public proposals;
+    uint256 public proposalCount;
 
-    mapping(address => uint256) private votingPower;
+    mapping(address => uint256) public votingPower;
 
 
     /* modifiers */
 
     modifier mustBeActive(uint256 _proposalId) {
-        require(proposals[_proposalId].isActive, "Proposal must be active to vote");
+        require(proposals[_proposalId].isActive, "Proposal is closed");
         _;
     }
 
@@ -66,14 +66,11 @@ contract EtherGovernance {
     // user redeems ether from a proposal
     // can be used to "unstake" eth from a closed proposal or unvote a currently open one
     function unvoteFromProposal(uint256 _proposalId) public {
-        uint256 userVotes = proposals[_proposalId].votes[msg.sender];
-        require(userVotes > 0, "User has not voted for this proposal");
-        
+        require(proposals[_proposalId].votes[msg.sender] > 0, "User has not voted for this proposal");
+        votingPower[msg.sender] += proposals[_proposalId].votes[msg.sender];
         if(proposals[_proposalId].isActive){
             proposals[_proposalId].votes[msg.sender] = 0;
         }
-        
-        votingPower[msg.sender] += userVotes;
     }
 
     function createProposal() external hasVotingPower(msg.sender) returns (uint256) {
@@ -112,6 +109,8 @@ contract EtherGovernance {
         proposals[_proposalId].isActive = false;
     }
 
+    /* view functions */
+
     function getUserBalance() public view returns (uint256) {
         return votingPower[msg.sender];
     }
@@ -119,4 +118,5 @@ contract EtherGovernance {
     function getUserBalance(address _addr) public view returns (uint256) {
         return votingPower[_addr];
     }
+
 }
