@@ -32,6 +32,27 @@ contract('EtherGovernance', (accounts) => {
         'the voting power does not match the deposited amount'
       )
     })
+
+    it('should be able to withdraw ether as long as it is less than the voting power', async () => {
+      // deposit 3 ether into the contract
+      await instance.sendTransaction({ from: voter1, value: web3.utils.toWei('3', 'Ether') })
+      await instance.redeemEther(web3.utils.toWei('3', 'Ether'))
+    })
+
+    it('should be able to create a proposal and to close it', async () => {
+      // get voting power
+      await instance.sendTransaction({ from: voter1, value: web3.utils.toWei('1', 'Ether') })
+      await instance.createProposal()
+      await instance.closeProposal(0)
+    })
+
+    it('should be able to vote for a proposal', async () => {
+      // get voting power
+      await instance.sendTransaction({ from: voter1, value: web3.utils.toWei('1', 'Ether') })
+      await instance.sendTransaction({ from: voter2, value: web3.utils.toWei('1', 'Ether') })
+      await instance.createProposal({ from: voter1 })
+      await instance.voteProposal(0, web3.utils.toWei('1', 'Ether'), true, { from: voter2 })
+    })
   })
 })
 
