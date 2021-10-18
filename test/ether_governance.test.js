@@ -55,30 +55,3 @@ contract('EtherGovernance', (accounts) => {
     })
   })
 })
-
-/*
-contract('EtherGovernance', (accounts) => {
-  const [_owner, voter1, voter2] = accounts
-  const emptyAddress = '0x0000000000000000000000000000000000000000'
-
-  let instance
-
-  beforeEach(async () => {
-    instance = await EtherGovernance.new()
-  })
-
-  describe('Variables', () => {
-    it('should have a proposalCreationRequirement', async () => {
-      assert.equals(
-        typeof instance.proposalCreationRequirement,
-        'function',
-        'the contract has no proposalCreationRequirement'
-      )
-    })
-
-    it('should have a proposalCount', async () => {
-      asset.equals(typeof instance.proposalCount, 'function', 'the contract has no proposalCount')
-    })
-  })
-})
-*/
