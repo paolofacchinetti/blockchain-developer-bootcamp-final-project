@@ -165,11 +165,11 @@ contract EtherGovernance {
 
     /* view functions */
 
-    function getUserBalance() public view returns (uint256) {
+    function getVotingPower() public view returns (uint256) {
         return votingPower[msg.sender];
     }
 
-    function getUserBalance(address _addr) public view returns (uint256) {
+    function getVotingPower(address _addr) public view returns (uint256) {
         return votingPower[_addr];
     }
 }
