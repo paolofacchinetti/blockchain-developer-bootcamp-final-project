@@ -93,27 +93,6 @@ contract EtherGovernance {
         emit Withdraw(msg.sender, _amount);
     }
 
-    // user redeems ether from a proposal
-    // can be used to "unstake" eth from a closed proposal or unvote a currently open one
-    function unvoteFromProposal(uint256 _proposalId) public {
-        require(
-            proposals[_proposalId].votes[msg.sender] > 0,
-            "User has not voted for this proposal"
-        );
-
-        votingPower[msg.sender] += proposals[_proposalId].votes[msg.sender];
-
-        emit Unvote(
-            msg.sender,
-            _proposalId,
-            proposals[_proposalId].votes[msg.sender]
-        );
-
-        if (proposals[_proposalId].isActive) {
-            proposals[_proposalId].votes[msg.sender] = 0;
-        }
-    }
-
     function createProposal()
         external
         hasVotingPower(msg.sender)
@@ -153,6 +132,27 @@ contract EtherGovernance {
         emit Vote(msg.sender, _proposalId, _votes, _voteForAgainst);
     }
 
+    // user redeems ether from a proposal
+    // can be used to "unstake" eth from a closed proposal or unvote a currently open one
+    function unvoteFromProposal(uint256 _proposalId) public {
+        require(
+            proposals[_proposalId].votes[msg.sender] > 0,
+            "User has not voted for this proposal"
+        );
+
+        votingPower[msg.sender] += proposals[_proposalId].votes[msg.sender];
+
+        emit Unvote(
+            msg.sender,
+            _proposalId,
+            proposals[_proposalId].votes[msg.sender]
+        );
+
+        if (proposals[_proposalId].isActive) {
+            proposals[_proposalId].votes[msg.sender] = 0;
+        }
+    }
+
     // proposal creator closes the proposal, preventing new votes from coming in
     function closeProposal(uint256 _proposalId)
         external
@@ -171,5 +171,20 @@ contract EtherGovernance {
 
     function getVotingPower(address _addr) public view returns (uint256) {
         return votingPower[_addr];
+    }
+
+    function getProposalVotes(uint256 _proposalId)
+        public
+        view
+        returns (uint256, uint256)
+    {
+        return (
+            proposals[_proposalId].votesFor,
+            proposals[_proposalId].votesAgainst
+        );
+    }
+
+    function isProposalActive(uint256 _proposalId) public view returns (bool) {
+        return proposals[_proposalId].isActive;
     }
 }
