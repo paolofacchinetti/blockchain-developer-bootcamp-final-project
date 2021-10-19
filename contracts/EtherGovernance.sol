@@ -12,7 +12,7 @@ contract EtherGovernance {
     }
 
     /* state */
-
+    address public owner;
     uint256 public proposalCreationRequirement;
     mapping(uint256 => Proposal) public proposals;
     uint256 public proposalCount;
@@ -22,6 +22,11 @@ contract EtherGovernance {
 
     modifier mustBeActive(uint256 _proposalId) {
         require(proposals[_proposalId].isActive, "Proposal is closed");
+        _;
+    }
+
+    modifier onlyOwner(address _addr) {
+        require(_addr == owner, "Only the contract's owner can call this function");
         _;
     }
 
@@ -48,7 +53,7 @@ contract EtherGovernance {
 
     event Withdraw(address indexed _to, uint256 _value);
 
-    event ProposalCreation(
+    event CreateProposal(
         address indexed _creator,
         uint256 indexed _proposalId
     );
@@ -66,7 +71,7 @@ contract EtherGovernance {
         uint256 _votes
     );
 
-    event ProposalClosing(address indexed _closer, uint256 indexed _proposalId);
+    event CloseProposal(address indexed _closer, uint256 indexed _proposalId);
 
     /* functions */
 
@@ -105,7 +110,7 @@ contract EtherGovernance {
         newProp.votesFor = 0;
         // hash of text = _hash
 
-        emit ProposalCreation(msg.sender, proposalCount); //hash text
+        emit CreateProposal(msg.sender, proposalCount); //hash text
 
         proposalCount++;
         return (proposalCount - 1);
@@ -134,7 +139,7 @@ contract EtherGovernance {
 
     // user redeems ether from a proposal
     // can be used to "unstake" eth from a closed proposal or unvote a currently open one
-    function unvoteFromProposal(uint256 _proposalId) public {
+    function unvoteFromProposal(uint256 _proposalId) external {
         require(
             proposals[_proposalId].votes[msg.sender] > 0,
             "User has not voted for this proposal"
@@ -160,7 +165,11 @@ contract EtherGovernance {
         onlyCreator(_proposalId, msg.sender)
     {
         proposals[_proposalId].isActive = false;
-        emit ProposalClosing(msg.sender, _proposalId);
+        emit CloseProposal(msg.sender, _proposalId);
+    }
+
+    function updateProposalCreationRequirement(uint _proposalCreationRequirement) onlyOwner(msg.sender) external {
+        proposalCreationRequirement = _proposalCreationRequirement;
     }
 
     /* view functions */
