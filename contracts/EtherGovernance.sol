@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity 0.8.0;
 
-contract EtherGovernance {
+import "./Ownable.sol";
+
+/// @title On-chain governance based on Ether
+/// @author paolofacchinetti
+/// @notice You can use this library as per MIT license
+/// @dev 
+contract EtherGovernance is Ownable {
     struct Proposal {
         address creator;
         uint256 votesFor;
@@ -12,7 +18,6 @@ contract EtherGovernance {
     }
 
     /* state */
-    address public owner;
     uint256 public proposalCreationRequirement;
     mapping(uint256 => Proposal) public proposals;
     uint256 public proposalCount;
@@ -22,11 +27,6 @@ contract EtherGovernance {
 
     modifier mustBeActive(uint256 _proposalId) {
         require(proposals[_proposalId].isActive, "Proposal is closed");
-        _;
-    }
-
-    modifier onlyOwner(address _addr) {
-        require(_addr == owner, "Only the contract's owner can call this function");
         _;
     }
 
@@ -93,7 +93,9 @@ contract EtherGovernance {
         );
 
         votingPower[msg.sender] -= _amount;
-        payable(msg.sender).transfer(_amount);
+
+        (bool success, ) = msg.sender.call{value: _amount}("");
+        require(success, "Transfer failed.");
 
         emit Withdraw(msg.sender, _amount);
     }
@@ -168,7 +170,7 @@ contract EtherGovernance {
         emit CloseProposal(msg.sender, _proposalId);
     }
 
-    function updateProposalCreationRequirement(uint _proposalCreationRequirement) onlyOwner(msg.sender) external {
+    function updateProposalCreationRequirement(uint _proposalCreationRequirement) onlyOwner() external {
         proposalCreationRequirement = _proposalCreationRequirement;
     }
 
