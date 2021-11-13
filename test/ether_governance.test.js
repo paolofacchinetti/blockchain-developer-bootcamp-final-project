@@ -18,6 +18,14 @@ contract('EtherGovernance', (accounts) => {
     )
   })
 
+  it('Should have an owner', async () => {
+    let owner = await instance.owner.call()
+    assert.equal(
+      owner,
+      voter1
+    )
+  })
+
   describe('Functionalities', () => {
     it('should be able to deposit ether to get voting power', async () => {
       // deposit 3 ether into the contract
