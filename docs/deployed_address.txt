@@ -1,0 +1,7 @@
+The contract has been deployed at address:
+
+0x692560b307E40813EcB8e0C146c911280F60ab10
+
+On the Rinkeby Ethereum Network
+
+Etherscan link: https://rinkeby.etherscan.io/address/0x692560b307E40813EcB8e0C146c911280F60ab10
