@@ -50,7 +50,7 @@ contract('EtherGovernance', (accounts) => {
     it('should be able to create a proposal and to close it', async () => {
       // get voting power
       await instance.sendTransaction({ from: voter1, value: web3.utils.toWei('1', 'Ether') })
-      await instance.createProposal()
+      await instance.createProposal("E0A49530BEB9996C241B0B09F3322025A04B7BE228BA11792D22F95FE4040962")
       await instance.closeProposal(0)
     })
 

@@ -14,7 +14,7 @@ contract EtherGovernance is Ownable {
         uint256 votesAgainst;
         mapping(address => uint256) votes;
         bool isActive;
-        // hash of the proposal's text
+        string textHash;
     }
 
     /* state */
@@ -24,7 +24,6 @@ contract EtherGovernance is Ownable {
     mapping(address => uint256) public votingPower;
 
     /* modifiers */
-
     modifier mustBeActive(uint256 _proposalId) {
         require(proposals[_proposalId].isActive, "Proposal is closed");
         _;
@@ -47,14 +46,13 @@ contract EtherGovernance is Ownable {
     }
 
     /* events */
-
-    //TODO events
     event Deposit(address indexed _from, uint256 _value);
 
     event Withdraw(address indexed _to, uint256 _value);
 
     event CreateProposal(
         address indexed _creator,
+        string _textHash,
         uint256 indexed _proposalId
     );
 
@@ -75,6 +73,9 @@ contract EtherGovernance is Ownable {
 
     /* functions */
 
+    /**
+     * @dev Initializes the contract setting an initial proposalCreationRequirement and setting the deployer as the initial owner
+     */
     constructor(uint256 _proposalCreationRequirement) {
         proposalCreationRequirement = _proposalCreationRequirement;
         proposalCount = 0;
@@ -85,7 +86,9 @@ contract EtherGovernance is Ownable {
         emit Deposit(msg.sender, msg.value);
     }
 
-    // user redeems all or some of the Ether he previously locked, granted that it's available and not used in ongoing proposals
+    /**
+     * @dev user redeems all or some of the Ether he previously locked, granted that it's available and not used in ongoing proposals
+     */
     function redeemEther(uint256 _amount) external {
         require(
             votingPower[msg.sender] >= _amount,
@@ -100,7 +103,10 @@ contract EtherGovernance is Ownable {
         emit Withdraw(msg.sender, _amount);
     }
 
-    function createProposal()
+    /**
+     * @dev user creates a proposal
+     */
+    function createProposal(string memory _textHash)
         external
         hasVotingPower(msg.sender)
         returns (uint256)
@@ -110,15 +116,17 @@ contract EtherGovernance is Ownable {
         newProp.isActive = true;
         newProp.votesAgainst = 0;
         newProp.votesFor = 0;
-        // hash of text = _hash
+        newProp.textHash = _textHash;
 
-        emit CreateProposal(msg.sender, proposalCount); //hash text
+        emit CreateProposal(msg.sender, _textHash, proposalCount); 
 
         proposalCount++;
         return (proposalCount - 1);
     }
 
-    // user stakes some ether on a proposal to vote for/against it
+    /**
+     * @dev user votes on a proposal by allocating some of his voting power
+     */
     function voteProposal(
         uint256 _proposalId,
         uint256 _votes,
@@ -139,8 +147,10 @@ contract EtherGovernance is Ownable {
         emit Vote(msg.sender, _proposalId, _votes, _voteForAgainst);
     }
 
-    // user redeems ether from a proposal
-    // can be used to "unstake" eth from a closed proposal or unvote a currently open one
+    /**
+     * @dev user unvotes from a proposal, redeeming the voting power he previously committed to the proposal.
+     * Can be done on both an open and an already closed proposal
+     */
     function unvoteFromProposal(uint256 _proposalId) external {
         require(
             proposals[_proposalId].votes[msg.sender] > 0,
@@ -160,7 +170,9 @@ contract EtherGovernance is Ownable {
         }
     }
 
-    // proposal creator closes the proposal, preventing new votes from coming in
+    /**
+     * @dev the proposal creator closes the proposal, preventing new votes
+     */
     function closeProposal(uint256 _proposalId)
         external
         mustBeActive(_proposalId)
@@ -170,6 +182,10 @@ contract EtherGovernance is Ownable {
         emit CloseProposal(msg.sender, _proposalId);
     }
 
+    /**
+     * @dev contract's owner updates the proposalCreationRequirement value, which is the minimum amount of voting power
+     * required to open a new proposal
+     */
     function updateProposalCreationRequirement(uint _proposalCreationRequirement) onlyOwner() external {
         proposalCreationRequirement = _proposalCreationRequirement;
     }
