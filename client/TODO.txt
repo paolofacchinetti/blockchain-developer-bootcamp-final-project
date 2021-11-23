@@ -1,0 +1,15 @@
+* Display info from smart contract:
+    - show user voting power
+    - show current open proposals
+* Allow user to submit TX and upgrade contract state:
+    - deposit ETH -> voting power increases
+    - create proposal
+* Update frontend if TX is successful
+    - view update voting power
+    - view proposal
+
+Order:
+1) Connect metamask, only THEN:
+2) load ethereum.selectedAddress
+3) load votingPower
+4) Show deposit eth interface
