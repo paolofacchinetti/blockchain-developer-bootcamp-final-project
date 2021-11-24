@@ -12,17 +12,20 @@
     <h1>EtherGovernance</h1>
     <span>{{metamaskStatus}}</span>
     <span v-if="metamaskConnected">Voting Power: {{votingPower}}</span>
-    <div class="buttons">
-        <button v-if="!metamaskConnected" @click="connectMetamask">Connect to MetaMask</button>
-        <button>Get Voting Power</button>
+    <button v-if="!metamaskConnected" @click="connectMetamask">Connect to MetaMask</button>
+    <div class="vpower">
+        <button @click="getVotingPower">Get Voting Power</button>
+        <input type="number" min="0" step="0.1" placeholder="1.0" v-model="askVotingPower">
     </div>
+
 </div>
 
 <style>
-    html,body {
+    html, body {
         margin: 0;
         padding: 0;
     }
+
     #root {
         display: flex;
         width: 100vw;
@@ -31,6 +34,7 @@
         align-items: center;
         justify-content: center;
     }
+
     .buttons {
         display: flex;
         flex-direction: row;
@@ -41,7 +45,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
-<!-- <script src="./dapp.js"></script> -->
 <script>
     // const egAddress = '0x84062EA6FafAE18A1fbD693cf339d83bDf79AE23' // truffle localhost
     const egAddress = '0x692560b307E40813EcB8e0C146c911280F60ab10' // rinkeby
@@ -57,6 +60,7 @@
                 metamaskStatus: "You need MetaMask to use this website!",
                 metamaskConnected: false,
                 votingPower: 0,
+                askVotingPower: 1.0,
             }
         },
 
@@ -72,14 +76,37 @@
                 }
             },
             updateVotingPower: async function () {
+                console.log("updating voting power")
                 return new Promise((resolve, reject) => etherGovernance.methods.getVotingPower(ethereum.selectedAddress).call((err, res) => {
                     if (err) {
-                        console.log("error fetching voting power", err)
+                        console.error("error fetching voting power", err)
                         reject(err)
                     }
                     resolve(res)
                 }))
-            }
+            },
+            getVotingPower: async function () {
+                if (!this.metamaskConnected) {
+                    alert("You need to connect MetaMask to do this!")
+                } else {
+                    return new Promise((resolve, reject) => web3.eth.sendTransaction({
+                        from: ethereum.selectedAddress,
+                        to: egAddress,
+                        value: web3.utils.toWei(this.askVotingPower.toString(), "ether")
+                    }, (err, transactionHash) => {
+                        if(err) {
+                            console.error("error during the votingPower deposit transaction!")
+                            reject(err)
+                        }
+                        resolve(transactionHash)
+                    }))
+                    .then( async function(response) {
+                        console.log("TxHash: " + response)
+                        this.votingPower = await this.updateVotingPower()
+                    })
+                }
+            },
+
 
         },
 
@@ -99,6 +126,10 @@
                 web3 = new Web3(window.ethereum)
                 etherGovernance = new web3.eth.Contract(egABI, egAddress)
                 etherGovernance.setProvider(window.ethereum)
+
+                // connect metamask
+                await this.connectMetamask()
+
             } else {
                 alert("You need to install MetaMask to access this dApp!")
                 console.error('MetaMask Not Available')
