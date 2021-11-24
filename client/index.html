@@ -11,11 +11,30 @@
 <div id="root">
     <h1>EtherGovernance</h1>
     <span>{{metamaskStatus}}</span>
-    <span v-if="metamaskConnected">Voting Power: {{votingPower}}</span>
+    <span v-if="metamaskConnected">Available Voting Power: {{votingPower}}</span>
     <button v-if="!metamaskConnected" @click="connectMetamask">Connect to MetaMask</button>
-    <div class="vpower">
+    <div v-if="metamaskConnected" class="vpower">
         <button @click="getVotingPower">Get Voting Power</button>
-        <input type="number" min="0" step="0.1" placeholder="1.0" v-model="askVotingPower">
+        <input type="number" min="0" step="0.1" v-model="depositVotingPower">
+        <button @click="redeemVotingPower">Withdraw Ether</button>
+        <input type="number" min="0" step="0.1" v-model="withdrawVotingPower">
+    </div>
+
+    <div v-if="metamaskConnected" class="proposals">
+        <button @click="updateProposals">Update proposal [dev]</button>
+        <!--
+        <div v-for="prop in proposals">
+            <span>Proposal Name: {{prop.name}}</span>
+            <span>Proposal Votes <b>FOR</b>: {{prop.votesFor}}</span>
+        </div>
+        -->
+
+    </div>
+
+    <div v-if="metamaskConnected" class="proposalCreation">
+        <h3>Create your own Proposal:</h3>
+        <textarea v-model="proposalText" rows="4" cols="50"></textarea>
+        <button>Create Proposal</button>
     </div>
 
 </div>
@@ -35,10 +54,6 @@
         justify-content: center;
     }
 
-    .buttons {
-        display: flex;
-        flex-direction: row;
-    }
 </style>
 
 </body>
@@ -60,7 +75,10 @@
                 metamaskStatus: "You need MetaMask to use this website!",
                 metamaskConnected: false,
                 votingPower: 0,
-                askVotingPower: 1.0,
+                depositVotingPower: 1.0,
+                withdrawVotingPower: 1.0,
+                proposalText: "",
+                proposals: [],
             }
         },
 
@@ -70,7 +88,10 @@
                     await ethereum.request({method: 'eth_requestAccounts'})
                     this.metamaskStatus = "account: " + ethereum.selectedAddress
                     this.metamaskConnected = true
-                    this.votingPower = await this.updateVotingPower()
+                    // await this.updateProposals() // TODO: updateProposals
+                    let vp = await this.updateVotingPower()
+                    this.votingPower = web3.utils.fromWei(vp, "ether")
+                    this.withdrawVotingPower = this.votingPower
                 } catch (err) {
                     console.log(err)
                 }
@@ -86,28 +107,51 @@
                 }))
             },
             getVotingPower: async function () {
+                let ref = this
                 if (!this.metamaskConnected) {
                     alert("You need to connect MetaMask to do this!")
                 } else {
                     return new Promise((resolve, reject) => web3.eth.sendTransaction({
                         from: ethereum.selectedAddress,
                         to: egAddress,
-                        value: web3.utils.toWei(this.askVotingPower.toString(), "ether")
+                        value: web3.utils.toWei(this.depositVotingPower.toString(), "ether")
                     }, (err, transactionHash) => {
-                        if(err) {
-                            console.error("error during the votingPower deposit transaction!")
+                        if (err) {
+                            console.error("error during the votingPower deposit transaction!", err)
                             reject(err)
                         }
                         resolve(transactionHash)
-                    }))
-                    .then( async function(response) {
-                        console.log("TxHash: " + response)
-                        this.votingPower = await this.updateVotingPower()
+                    })
+                        .on('confirmation', async function () {
+                            let vp = await ref.updateVotingPower()
+                            ref.votingPower = web3.utils.fromWei(vp, "ether")
+                        }))
+                }
+            },
+            redeemVotingPower: async function () {
+                if (!this.metamaskConnected) {
+                    alert("You need to connect MetaMask to do this!")
+                } else {
+                    etherGovernance.methods.redeemEther(web3.utils.toWei(this.withdrawVotingPower.toString(), "ether")).send({
+                        from: ethereum.selectedAddress,
+                        to: egAddress
+                    }, (err, transactionHash) => {
+                        if (err) {
+                            console.error("error during the voting power redeem transaction!", err)
+                        }
+                        console.log("withdrawing Ether from contract, txHash :", transactionHash)
                     })
                 }
             },
-
-
+            updateProposals: async function () {
+                console.log("updating Proposals")
+                etherGovernance.methods.call((res, err) => {
+                    if (err) {
+                        console.error("error during the update of proposals")
+                    }
+                    console.log(res)
+                })
+            },
         },
 
         computed: {},
