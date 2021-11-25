@@ -78,6 +78,7 @@
                 depositVotingPower: 1.0,
                 withdrawVotingPower: 1.0,
                 proposalText: "",
+                proposalCount: 0,
                 proposals: [],
             }
         },
@@ -101,9 +102,9 @@
             },
             updateVotingPower: function () {
                 etherGovernance.methods.getVotingPower(ethereum.selectedAddress).call((err, res) => {
-                    if(err) {
+                    if (err) {
                         console.error("error fetching voting power", err)
-                    }else {
+                    } else {
                         this.votingPower = web3.utils.fromWei(res, "ether")
                         this.withdrawVotingPower = web3.utils.fromWei(res, "ether")
                         console.log("fetch voting power: ", this.votingPower, " ether")
@@ -119,10 +120,10 @@
                         to: egAddress,
                         value: web3.utils.toWei(this.depositVotingPower.toString(), "ether")
                     })
-                    .on('receipt', (receipt) => {
-                        console.log("receipt: ", receipt)
-                        this.updateVotingPower()
-                    })
+                        .on('receipt', (receipt) => {
+                            console.log("receipt: ", receipt)
+                            this.updateVotingPower()
+                        })
                 }
             },
             redeemVotingPower: async function () {
@@ -133,28 +134,38 @@
                         from: ethereum.selectedAddress,
                         to: egAddress
                     })
-                    .on('receipt', (receipt) => {
-                        console.log("withdrawed Ether from the contract, receipt: ", receipt)
-                        this.updateVotingPower()
-                    })
+                        .on('receipt', (receipt) => {
+                            console.log("withdrawed Ether from the contract, receipt: ", receipt)
+                            this.updateVotingPower()
+                        })
                 }
             },
-            // change into fetchAllProposal, make updateProposal(propId)
             fetchAllProposals: async function () {
                 console.log("updating Proposals")
                 etherGovernance.methods.proposalCount().call((err, res) => {
                     if (err) {
-                        console.error("error during fetch of proposalCount")
+                        console.error("error during proposalCount fetch")
                     } else {
                         console.log("proposalCount: ", res)
-                    }
-                })
-                // for cycle, fetch proposal from each.
-                etherGovernance.methods.proposals(0).call((err, res) => {
-                    if (err) {
-                        console.error("error during the update of proposals")
-                    } else {
-                        console.log("props:", res)
+                        this.proposalCount = res
+                        let prop
+                        for (let i = 0; i < this.proposalCount; i++) {
+                            etherGovernance.methods.proposals(0).call((err, res) => {
+                                if (err) {
+                                    console.error("error during proposals fetch")
+                                } else {
+                                    console.log("prop n: ", i, ": ", res)
+                                    let prop = {
+                                        propcreator: res.propcreator,
+                                        isActive: res.isActive,
+                                        textHash: res.textHash,
+                                        votesAgainst: res.votesAgainst,
+                                        votesFor: res.votesFor
+                                    }
+                                    this.proposals[i] = prop
+                                }
+                            })
+                        }
                     }
                 })
             },
