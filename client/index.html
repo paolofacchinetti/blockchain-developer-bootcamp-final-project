@@ -33,8 +33,8 @@
 
     <div v-if="metamaskConnected" class="proposalCreation">
         <h3>Create your own Proposal:</h3>
-        <textarea v-model="proposalText" rows="4" cols="50"></textarea>
-        <button>Create Proposal</button>
+        <textarea v-model="createPropText" rows="4" cols="50"></textarea>
+        <button @click="createProposal">Create Proposal</button>
     </div>
 
 </div>
@@ -58,12 +58,20 @@
 
 </body>
 
+<!-- WEB3 -->
 <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+<!-- VUE -->
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+<!-- AXIOS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.24.0/axios.min.js"
+        integrity="sha512-u9akINsQsAkG9xjc1cnGF4zw5TFDwkxuc9vUp5dltDWYCSmyd0meygbvgXrlc/z7/o4a19Fb5V0OUE58J7dcyw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 <script>
     // const egAddress = '0x84062EA6FafAE18A1fbD693cf339d83bDf79AE23' // truffle localhost
     const egAddress = '0x692560b307E40813EcB8e0C146c911280F60ab10' // rinkeby
     const abiPath = "./contracts/etherGovernance.json"
+    const hashApi = "https://api.hashify.net/hash/sha256/hex"
     let web3
     let etherGovernance
 
@@ -77,9 +85,9 @@
                 votingPower: 0,
                 depositVotingPower: 1.0,
                 withdrawVotingPower: 1.0,
-                proposalText: "",
                 proposalCount: 0,
                 proposals: [],
+                createPropText: "",
             }
         },
 
@@ -89,18 +97,13 @@
                     await ethereum.request({method: 'eth_requestAccounts'})
                     this.metamaskStatus = "account: " + ethereum.selectedAddress
                     this.metamaskConnected = true
-                    // await this.updateProposals() // TODO: updateProposals
-                    this.updateVotingPower()
-                    /*
-                    let vp = await this.updateVotingPower()
-                    this.votingPower = web3.utils.fromWei(vp, "ether")
-                    this.withdrawVotingPower = this.votingPower
-                    */
+                    this.fetchVotingPower()
+                    this.fetchAllProposals()
                 } catch (err) {
                     console.log(err)
                 }
             },
-            updateVotingPower: function () {
+            fetchVotingPower: function () {
                 etherGovernance.methods.getVotingPower(ethereum.selectedAddress).call((err, res) => {
                     if (err) {
                         console.error("error fetching voting power", err)
@@ -111,36 +114,7 @@
                     }
                 })
             },
-            getVotingPower: async function () {
-                if (!this.metamaskConnected) {
-                    alert("You need to connect MetaMask to do this!")
-                } else {
-                    web3.eth.sendTransaction({
-                        from: ethereum.selectedAddress,
-                        to: egAddress,
-                        value: web3.utils.toWei(this.depositVotingPower.toString(), "ether")
-                    })
-                        .on('receipt', (receipt) => {
-                            console.log("receipt: ", receipt)
-                            this.updateVotingPower()
-                        })
-                }
-            },
-            redeemVotingPower: async function () {
-                if (!this.metamaskConnected) {
-                    alert("You need to connect MetaMask to do this!")
-                } else {
-                    etherGovernance.methods.redeemEther(web3.utils.toWei(this.withdrawVotingPower.toString(), "ether")).send({
-                        from: ethereum.selectedAddress,
-                        to: egAddress
-                    })
-                        .on('receipt', (receipt) => {
-                            console.log("withdrawed Ether from the contract, receipt: ", receipt)
-                            this.updateVotingPower()
-                        })
-                }
-            },
-            fetchAllProposals: async function () {
+            fetchAllProposals: function () {
                 console.log("updating Proposals")
                 etherGovernance.methods.proposalCount().call((err, res) => {
                     if (err) {
@@ -148,7 +122,6 @@
                     } else {
                         console.log("proposalCount: ", res)
                         this.proposalCount = res
-                        let prop
                         for (let i = 0; i < this.proposalCount; i++) {
                             etherGovernance.methods.proposals(0).call((err, res) => {
                                 if (err) {
@@ -169,6 +142,60 @@
                     }
                 })
             },
+            getVotingPower: function () {
+                if (!this.metamaskConnected) {
+                    alert("You need to connect MetaMask to do this!")
+                } else {
+                    web3.eth.sendTransaction({
+                        from: ethereum.selectedAddress,
+                        to: egAddress,
+                        value: web3.utils.toWei(this.depositVotingPower.toString(), "ether")
+                    })
+                        .on('receipt', (receipt) => {
+                            console.log("receipt: ", receipt)
+                            this.fetchVotingPower()
+                        })
+                }
+            },
+            redeemVotingPower: function () {
+                if (!this.metamaskConnected) {
+                    alert("You need to connect MetaMask to do this!")
+                } else {
+                    etherGovernance.methods.redeemEther(web3.utils.toWei(this.withdrawVotingPower.toString(), "ether")).send({
+                        from: ethereum.selectedAddress,
+                        to: egAddress
+                    })
+                        .on('receipt', (receipt) => {
+                            console.log("withdrawed Ether from the contract, receipt: ", receipt)
+                            this.fetchVotingPower()
+                        })
+                }
+            },
+            createProposal: async function () {
+                if (!this.metamaskConnected) {
+                    alert("You need to connect MetaMask to do this!")
+                } else { // TODO add check for proposalCreationRequirement
+                    let hashedText = await this.hashText(this.createPropText)
+                    etherGovernance.methods.createProposal(hashedText).send({
+                        from: ethereum.selectedAdress,
+                        to: egAddress
+                    })
+                        .on('receipt', (receipt) => {
+                            console.log("created new proposal, receipt: ", receipt)
+                            // message user
+                            this.fetchAllProposals()
+                        })
+                }
+            },
+            hashText: async function (text) {
+                try {
+                    const response = await axios.get(hashApi + "?value=" + text)
+                    console.log("called hash api, hash: ", response.data.Digest)
+                    return response.data.Digest
+                } catch (error) {
+                    console.error(error)
+                }
+            }
         },
 
         computed: {},
