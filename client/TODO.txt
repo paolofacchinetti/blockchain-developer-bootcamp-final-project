@@ -3,4 +3,8 @@
 * show proposals interface
     - vote for/against proposals
     - close own proposals
-* create proposal interface
+* create proposal
+    - create UI
+    - make SHA256 hash of the proposal's text
+    - call the createProposal() method
+    - update state
