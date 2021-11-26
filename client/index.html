@@ -21,13 +21,18 @@
     </div>
 
     <div v-if="metamaskConnected" class="proposals">
-        <div v-for="(prop, index) in proposals" :key="index" class="propList">
-            <span>Proposal Number: {{index}}</span>
+        <div v-for="prop in orderedProposals" class="propList">
+
+            <span>Proposal Number: {{prop.index}}</span>
             <span>Proposal Creator: {{prop.creator}}</span>
             <span>Proposal is: {{prop.isActive ? "Active" : "Closed"}}</span>
             <span>Proposal Text Hash: {{prop.textHash}}</span>
             <span>Proposal Votes For: {{prop.votesFor}}</span>
             <span>Proposal Votes Against: {{prop.votesAgainst}}</span>
+
+            <input type="number" min="0" step="0.1" v-model="voteAmount">
+            <button @click="vote(prop.index, true)">Vote for</button>
+            <button @click="vote(prop.index, false)">Vote against</button>
         </div>
 
     </div>
@@ -35,7 +40,7 @@
     <div v-if="metamaskConnected" class="proposalCreation">
         <h3>Create your own Proposal:</h3>
         <span>Proposal Creation Requirement: {{proposalCreationRequirement}}</span>
-        <textarea v-model="createPropText" rows="4" cols="50"></textarea>
+        <textarea v-model="createPropText" rows="4" cols="50" placeholder="Insert proposal text here"></textarea>
         <button @click="createProposal">Create Proposal</button>
     </div>
 
@@ -63,7 +68,8 @@
 
 
     .proposalCreation {
-
+        display: flex;
+        flex-direction: column;
     }
 
 </style>
@@ -80,7 +86,7 @@
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script>
-    // const egAddress = '0x84062EA6FafAE18A1fbD693cf339d83bDf79AE23' // truffle localhost
+    // const egAddress = '0x84062EA6FafAE18A1fbD693cf339d83bDf79AE23' // truffle localhost TODO remove
     const egAddress = '0x692560b307E40813EcB8e0C146c911280F60ab10' // rinkeby
     const abiPath = "./contracts/etherGovernance.json"
     const hashApi = "https://api.hashify.net/hash/sha256/hex"
@@ -101,6 +107,7 @@
                 proposalCount: 0,
                 proposals: [],
                 createPropText: "",
+                voteAmount: 0,
             }
         },
 
@@ -140,34 +147,33 @@
             },
             fetchAllProposals: function () {
                 console.log("updating Proposals...")
-
+                this.proposals = []
                 etherGovernance.methods.proposalCount().call(async (err, res) => {
+                    let ref = this
                     if (err) {
                         console.error("error during proposalCount fetch")
                     } else {
                         console.log("proposalCount: ", res)
                         this.proposalCount = res
-                        this.proposals = await Promise.all(Array(this.proposalCount).map((value, index) => {
-                            return new Promise((resolve, reject) => {
-                                etherGovernance.methods.proposals(index).call((err, res) => {
-                                    if (err) {
-                                        console.error("error during proposals fetch")
-                                        reject(err)
-                                    } else {
-                                        console.log("prop n: ", index, ": ", res)
-                                        let prop = {
-                                            index,
-                                            creator: res.creator,
-                                            isActive: res.isActive,
-                                            textHash: res.textHash,
-                                            votesAgainst: res.votesAgainst,
-                                            votesFor: res.votesFor
-                                        }
-                                        resolve(prop)
+                        for (let i = 0; i< this.proposalCount; i++) {
+                            etherGovernance.methods.proposals(i).call((err, res) => {
+                                if (err) {
+                                    console.error("error during proposals fetch")
+                                    return
+                                } else {
+                                    console.log("prop n: ", i, ": ", res)
+                                    let prop = {
+                                        index: i,
+                                        creator: res.creator,
+                                        isActive: res.isActive,
+                                        textHash: res.textHash,
+                                        votesAgainst: web3.utils.fromWei(res.votesAgainst.toString(), "ether"),
+                                        votesFor: web3.utils.fromWei(res.votesFor.toString(), "ether")
                                     }
-                                })
+                                    ref.proposals.push(prop)
+                                }
                             })
-                        }))
+                        }
                     }
                 })
             },
@@ -203,18 +209,48 @@
             createProposal: async function () {
                 if (!this.metamaskConnected) {
                     alert("You need to connect MetaMask to do this!")
-                } else { // TODO add check for proposalCreationRequirement
-                    let hashedText = await this.hashText(this.createPropText)
-                    etherGovernance.methods.createProposal(hashedText).send({
-                        from: ethereum.selectedAdress,
-                        to: egAddress
-                    })
-                        .on('receipt', (receipt) => {
-                            console.log("created new proposal, receipt: ", receipt)
-                            // message user
-                            this.fetchAllProposals()
-                        })
+                    return
                 }
+                if (!this.createPropText){
+                    alert("You need some text in your proposal!")
+                    return
+                }
+                if (this.votingPower < this.proposalCreationRequirement){
+                    alert("You don't have the necessary voting power to create a proposal!")
+                }
+                let hashedText = await this.hashText(this.createPropText)
+                etherGovernance.methods.createProposal(hashedText).send({
+                    from: ethereum.selectedAddress,
+                    to: egAddress
+                })
+                    .on('receipt', (receipt) => {
+                        console.log("created new proposal, receipt: ", receipt)
+                        // message user
+                        this.fetchAllProposals()
+                    })
+
+            },
+            vote: function (index, forAgainst) {
+                if (!this.metamaskConnected) {
+                    alert("You need to connect MetaMask to do this!")
+                    return
+                }
+                if (this.voteAmount > this.votingPower) {
+                    alert("You don't have enough voting power! ")
+                    return
+                }
+                etherGovernance.methods.voteProposal(
+                    index,
+                    web3.utils.toWei(this.voteAmount.toString(), "ether"),
+                    forAgainst
+                ).send({
+                    from: ethereum.selectedAddress,
+                    to: egAddress
+                })
+                .on('receipt', (receipt) => {
+                    console.log((forAgainst ? "voted for proposal!" : "voted against proposal!"), "prop: ", index, "receipt: ", receipt)
+                    this.fetchAllProposals()
+                })
             },
             hashText: async function (text) {
                 try {
@@ -227,7 +263,11 @@
             }
         },
 
-        computed: {},
+        computed: {
+            orderedProposals: function () {
+                return this.proposals.sort((a,b) => a.index-b.index)
+            }
+        },
 
         watch: {},
 
@@ -236,7 +276,6 @@
                 this.metamaskStatus = "MetaMask has been Detected!"
                 const response = await fetch(abiPath)
                 const jsonData = await response.json()
-                console.log(jsonData)
                 const egABI = jsonData.abi
 
                 // load Web3

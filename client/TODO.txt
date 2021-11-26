@@ -3,7 +3,3 @@
 * show proposals interface
     - vote for/against proposals
     - close own proposals
-* create proposal
-    - create UI
-    - call the createProposal() method
-    - update state
