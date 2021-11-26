@@ -5,6 +5,5 @@
     - close own proposals
 * create proposal
     - create UI
-    - make SHA256 hash of the proposal's text
     - call the createProposal() method
     - update state
