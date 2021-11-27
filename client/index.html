@@ -30,9 +30,11 @@
             <span>Proposal Votes For: {{prop.votesFor}}</span>
             <span>Proposal Votes Against: {{prop.votesAgainst}}</span>
 
-            <input type="number" min="0" step="0.1" v-model="voteAmount">
-            <button @click="vote(prop.index, true)">Vote for</button>
-            <button @click="vote(prop.index, false)">Vote against</button>
+            <div class="row">
+                <input type="number" min="0" step="0.1" v-model="voteAmount">
+                <button @click="vote(prop.index, true)">Vote for</button>
+                <button @click="vote(prop.index, false)">Vote against</button>
+            </div>
         </div>
 
     </div>
@@ -66,10 +68,14 @@
         flex-direction: column;
     }
 
-
     .proposalCreation {
         display: flex;
         flex-direction: column;
+    }
+
+    div.row {
+        display: flex;
+        flex-direction: row;
     }
 
 </style>
