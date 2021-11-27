@@ -15,6 +15,12 @@ https://ethergovernance.netlify.app/
 
 0xd83574a348608Db87b94969B5825fa1bc23C960D
 
+# Local dev guide
+
+This project uses plain html/js/css with a few libraries acquired through CDN.
+
+TODO finish!!!!
+
 # Project Overview
 
 ## The Problem

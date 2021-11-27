@@ -80,6 +80,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        padding-top: 30px;
     }
 
     .proposal {
@@ -283,6 +284,7 @@
                     .on('receipt', (receipt) => {
                         console.log((forAgainst ? "voted for proposal!" : "voted against proposal!"), "prop: ", index, "receipt: ", receipt)
                         this.fetchAllProposals()
+                        this.fetchVotingPower()
                     })
             },
             hashText: async function (text) {
