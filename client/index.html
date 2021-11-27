@@ -9,19 +9,23 @@
 <body>
 
 <div id="root">
-    <h1>EtherGovernance</h1>
-    <span>{{metamaskStatus}}</span>
-    <span v-if="metamaskConnected">Available Voting Power: {{votingPower}}</span>
-    <button v-if="!metamaskConnected" @click="connectMetamask">Connect to MetaMask</button>
-    <div v-if="metamaskConnected" class="vpower">
-        <button @click="getVotingPower">Get Voting Power</button>
-        <input type="number" min="0" step="0.1" v-model="depositVotingPower">
-        <button @click="redeemVotingPower">Withdraw Ether</button>
-        <input type="number" min="0" step="0.1" v-model="withdrawVotingPower">
+
+    <div class="header">
+        <h1>EtherGovernance</h1>
+        <div v-if="metamaskConnected" class="vpower">
+            <button @click="getVotingPower">Get Voting Power</button>
+            <input type="number" min="0" step="0.1" v-model="depositVotingPower">
+            <button @click="redeemVotingPower">Withdraw Ether</button>
+            <input type="number" min="0" step="0.1" v-model="withdrawVotingPower">
+        </div>
+        <span v-if="metamaskConnected">Available Voting Power: {{votingPower}}</span>
+        <span>{{metamaskStatus}}</span>
+        <button v-if="!metamaskConnected" @click="connectMetamask">Connect to MetaMask</button>
+
     </div>
 
-    <div v-if="metamaskConnected" class="proposals">
-        <div v-for="prop in orderedProposals" class="propList">
+    <div v-if="metamaskConnected" class="propList">
+        <div v-for="prop in orderedProposals" class="proposal">
 
             <span>Proposal Number: {{prop.index}}</span>
             <span>Proposal Creator: {{prop.creator}}</span>
@@ -36,10 +40,6 @@
                 <button @click="vote(prop.index, false)">Vote against</button>
             </div>
         </div>
-
-    </div>
-
-    <div v-if="metamaskConnected" class="proposalCreation">
         <h3>Create your own Proposal:</h3>
         <span>Proposal Creation Requirement: {{proposalCreationRequirement}}</span>
         <textarea v-model="createPropText" rows="4" cols="50" placeholder="Insert proposal text here"></textarea>
@@ -55,22 +55,50 @@
     }
 
     #root {
-        display: flex;
+        display: grid;
         width: 100vw;
         height: 100vh;
-        flex-direction: column;
+        grid-template-rows: 64px 3fr;
+        background: #e0e0e0;
+    }
+
+    div.header {
+        display: flex;
+        background-color: #a4a4a4;
+        padding: 8px;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
+        box-shadow: 0px 2px 18px 0 black;
+    }
+
+    div.header h1 {
+        margin: 0;
     }
 
     .propList {
         display: flex;
         flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
-    .proposalCreation {
+    .proposal {
+        background: white;
+        padding: 16px;
+        border-radius: 25px;
+        margin-bottom: 16px;
+        box-shadow: 0px 10px 14px -5px black;
         display: flex;
         flex-direction: column;
+        min-width: 50vw;
+    }
+
+    textarea {
+        width: calc(50vw + 16px);
+        min-height: 100px;
+        max-height: 100px;
+        min-width: calc(50vw + 16px);
+        max-width: calc(50vw + 16px);
     }
 
     div.row {
@@ -121,7 +149,7 @@
             connectMetamask: async function () {
                 try {
                     await ethereum.request({method: 'eth_requestAccounts'})
-                    this.metamaskStatus = "account: " + ethereum.selectedAddress
+                    this.metamaskStatus = "Account: " + ethereum.selectedAddress
                     this.metamaskConnected = true
                     this.fetchVotingPower()
                     this.fetchAllProposals()
@@ -161,7 +189,7 @@
                     } else {
                         console.log("proposalCount: ", res)
                         this.proposalCount = res
-                        for (let i = 0; i< this.proposalCount; i++) {
+                        for (let i = 0; i < this.proposalCount; i++) {
                             etherGovernance.methods.proposals(i).call((err, res) => {
                                 if (err) {
                                     console.error("error during proposals fetch")
@@ -217,11 +245,11 @@
                     alert("You need to connect MetaMask to do this!")
                     return
                 }
-                if (!this.createPropText){
+                if (!this.createPropText) {
                     alert("You need some text in your proposal!")
                     return
                 }
-                if (this.votingPower < this.proposalCreationRequirement){
+                if (this.votingPower < this.proposalCreationRequirement) {
                     alert("You don't have the necessary voting power to create a proposal!")
                 }
                 let hashedText = await this.hashText(this.createPropText)
@@ -253,10 +281,10 @@
                     from: ethereum.selectedAddress,
                     to: egAddress
                 })
-                .on('receipt', (receipt) => {
-                    console.log((forAgainst ? "voted for proposal!" : "voted against proposal!"), "prop: ", index, "receipt: ", receipt)
-                    this.fetchAllProposals()
-                })
+                    .on('receipt', (receipt) => {
+                        console.log((forAgainst ? "voted for proposal!" : "voted against proposal!"), "prop: ", index, "receipt: ", receipt)
+                        this.fetchAllProposals()
+                    })
             },
             hashText: async function (text) {
                 try {
@@ -271,7 +299,7 @@
 
         computed: {
             orderedProposals: function () {
-                return this.proposals.sort((a,b) => a.index-b.index)
+                return this.proposals.sort((a, b) => a.index - b.index)
             }
         },
 
