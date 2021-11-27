@@ -3,6 +3,10 @@
 # Deployed version url:
 https://ethergovernance.netlify.app/
 
+# Walkthrough of this project:
+
+https://youtu.be/UcPdqDBATbw
+
 # Directory structure
 * `client`: The frontend
     * `contracts`: the JSON output of the smart contract compilations, used by the client to extract the contract's ABI
