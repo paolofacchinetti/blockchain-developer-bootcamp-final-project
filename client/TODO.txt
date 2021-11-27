@@ -1,5 +1,0 @@
-* owner interface
-    - update proposalCreationRequirement
-* show proposals interface
-    - vote for/against proposals
-    - close own proposals

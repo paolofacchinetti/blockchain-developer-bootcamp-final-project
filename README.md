@@ -1,10 +1,27 @@
 # EtherGovernance - On-chain Governance based on Ether
 
-# Problem
+# Deployed version url:
+https://ethergovernance.netlify.app/
+
+# Directory structure
+* `client`: The frontend
+    * `contracts`: the JSON output of the smart contract compilations, used by the client to extract the contract's ABI
+* `contracts`: The solidity Smart Contracts that are deployed in the Rinkeby Testnet
+* `migrations`: Truffle's migrations for deploying smart contracts
+* `docs`: The documentation describing avoiding common attacks, design pattern decisions and a .txt file with the Rinkeby testnet address for this project.
+* `test`: Tests for the smart contracts
+
+# Public Ethereum account for NFT certification:
+
+0xd83574a348608Db87b94969B5825fa1bc23C960D
+
+# Project Overview
+
+## The Problem
 
 Protocols or DAOs that haven't issued a governance token yet (or don't want to), but want to partecipate in on-chain governance, can't.
 
-# Solution
+## The Solution
 
 Ether, the currency of the Ethereum network, has a wide distribution with millions of users. If your dApp or protocol is deployed on Ethereum, your users will certainly hold some amount of Ether.
 
@@ -14,7 +31,7 @@ Users will be able to create proposals and vote on them by locking Ether in the 
 
 ---
 
-# Example User Workflow
+## Example User Workflow
 
 - User visits the frontend, connects MetaMask
 
@@ -45,8 +62,3 @@ Users will be able to create proposals and vote on them by locking Ether in the 
 ### Redeeming Ether
 
 - User calls a `redeemEther()` function in the smart contract, withdrawing Ether from his available amount that's stored in the contract
-
-# Stretch goals
-
-- For now only the proposal's creator can close a proposal, whenever they want to. Implement a timer for each proposal (based on block #) after which anyone can close the proposal.
-- Support multiple protocols/DAOs from the same contract.
