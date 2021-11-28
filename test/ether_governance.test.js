@@ -53,7 +53,6 @@ contract('EtherGovernance', (accounts) => {
 
             const votingPower = await instance.getVotingPower.call()
 
-            console.log(votingPower)
             assert.equal(
                 votingPower.valueOf(),
                 depositVotingPower,

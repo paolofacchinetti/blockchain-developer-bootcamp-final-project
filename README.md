@@ -23,7 +23,20 @@ https://youtu.be/UcPdqDBATbw
 
 This project uses plain html/js/css with a few libraries acquired through CDN.
 
-TODO finish!!!!
+### Testing
+Tests should be run with Truffle. It will look for a local network on port 8545 (as shown in the `truffle-config.js` file).
+
+The local network can be served through Truffle or with Ganache.
+
+Using Ganache:
+
+* In one console, launch the command `ganache-cli`
+* In another console, and in the root directory of this repository, launch the command `truffle test`
+
+Using Truffle only:
+
+* In the root directory of this repository, launch the command `truffle develop` to open truffle's console
+* Inside the same truffle console, launch the command `test`
 
 # Project Overview
 
