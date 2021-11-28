@@ -21,7 +21,28 @@ https://youtu.be/UcPdqDBATbw
 
 # Local dev guide
 
-This project uses plain html/js/css with a few libraries acquired through CDN.
+This project uses plain html/js/css with a few libraries acquired through CDN. Everything is inside the `/client/index.html` file.
+
+Since MetaMask won't inject the "window.ethereum" object when opening the index.html as a local file inside a browser, it's recommended to either:
+
+* Use the `npx http-server` inside the `/client` directory to host the file in a simple webserver that will make Metamask work properly.
+* use an IDE like WebStorm that provides an out of the box webserver for accessing html files
+
+## Deploying and running locally
+
+In a terminal, be in the root directory of this project and:
+
+1. run `truffle develop` to open the truffle console. Save one of the private keys that truffle provides for step 6.
+2. inside, the truffle console, run `migrate` and save the contract address for "EtherGovernance".
+3. in the `client/index.html` file, go at line 124 and replace the `const egAddress` address with the one that you just saved in step 2.
+4. go inside the `/client` directory, and run `npx http-server` to serve a local webserver on port 8080.
+5. from your web browser of choice, make sure you have metamask installed, and add a new network with these settings:
+   * RPC URL: http://localhost:9545
+   * Chain ID: 1337
+   * Currency Symbol: ETH
+6. import an account in Metamask from the private key that you saved earlier
+7. go to "localhost:8080" from your favorite web browser
+8. watch the walkthrough video to see the functionalities you can test
 
 ### Testing
 Tests should be run with Truffle. It will look for a local network on port 8545 (as shown in the `truffle-config.js` file).

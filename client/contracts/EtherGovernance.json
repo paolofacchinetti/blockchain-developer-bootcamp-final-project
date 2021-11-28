@@ -21637,12 +21637,12 @@
         }
       },
       "links": {},
-      "address": "0x517B1Ca0653994160E352bfC19B07303Bec6AAD3",
-      "transactionHash": "0xc9c460f611e43b2148f3d694f0a6899937d0bcc392997cc71124ca543922942f"
+      "address": "0x84062EA6FafAE18A1fbD693cf339d83bDf79AE23",
+      "transactionHash": "0xe3208b23978ef9dde31fe61c0c54fcda264ab7899dd4c4c6eca8af80f08a2921"
     }
   },
   "schemaVersion": "3.4.3",
-  "updatedAt": "2021-11-23T11:39:36.541Z",
+  "updatedAt": "2021-11-28T13:22:21.774Z",
   "networkType": "ethereum",
   "devdoc": {
     "author": "paolofacchinetti",
