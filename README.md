@@ -1,7 +1,10 @@
 # EtherGovernance - On-chain Governance based on Ether
 
 # Deployed version url:
+
 https://ethergovernance.netlify.app/
+
+**Please test this project while being connected to the RINKEBY testnet!!!**
 
 # Walkthrough of this project:
 
@@ -21,11 +24,18 @@ https://youtu.be/UcPdqDBATbw
 
 # Local dev guide
 
+## Prerequisites
+
+* NodeJS (if you want to run the client locally through `npx http-server`)
+* Truffle
+* Ganache-cli (not required, but can be used instead of truffle for creating a local blockchain)
+* Git to clone this repository
+
 This project uses plain html/js/css with a few libraries acquired through CDN. Everything is inside the `/client/index.html` file.
 
 Since MetaMask won't inject the "window.ethereum" object when opening the index.html as a local file inside a browser, it's recommended to either:
 
-* Use the `npx http-server` inside the `/client` directory to host the file in a simple webserver that will make Metamask work properly.
+* Use the `npx http-server` command from a terminal inside the `/client` directory to host the file in a simple webserver that will make Metamask work properly.
 * use an IDE like WebStorm that provides an out of the box webserver for accessing html files
 
 ## Deploying and running locally
