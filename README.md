@@ -50,9 +50,9 @@ In a terminal, be in the root directory of this project and:
    * RPC URL: http://localhost:9545
    * Chain ID: 1337
    * Currency Symbol: ETH
-6. import an account in Metamask from the private key that you saved earlier
-7. go to "localhost:8080" from your favorite web browser
-8. watch the walkthrough video to see the functionalities you can test
+6. import a new account in MetaMask from the private key that you saved earlier in step 1.
+7. visit "localhost:8080" in your web browser
+8. watch the walkthrough video to see the functionalities you can try out
 
 ### Testing
 Tests should be run with Truffle. It will look for a local network on port 8545 (as shown in the `truffle-config.js` file).
